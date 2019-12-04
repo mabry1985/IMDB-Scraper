@@ -11,5 +11,17 @@ const sampleResult = {
 }
 
 async function scrapeTitlesRanksAndRatings(){
-  
+  const result = await request.get("https://www.imdb.com/chart/moviemeter/?ref_=nv_mv_mpm");
+  const $ = await cheerio.load(result);
+
+  const movies = $("tr")
+    .map((i, el) => {
+      const title = $(el).find("td.titleColumn > a").text();
+      const imdbRating = $("td.ratingColumn.imdbRating").text().trim();
+      const descriptionUrl = "https://www.imdb.com" + $(el).find("td.titleColumn > a").attr("href")
+    return {title, imdbRating, rank: i, descriptionUrl};
+  }).get();
+  console.log(movies);
 }
+
+scrapeTitlesRanksAndRatings();
