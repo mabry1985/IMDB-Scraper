@@ -1,4 +1,6 @@
 const request = require("request-promise");
+const regularRequest = require("request");
+const fs = require("fs");
 const cheerio = require("cheerio");
 const Nightmare = require("nightmare");
 const nightmare = Nightmare({ show: true });
@@ -55,6 +57,7 @@ async function scrapePosterImageUrl(movies) {
       $("#photo-container > div > div:nth-child(3) > div > div.pswp__scroll-wrap > div.pswp__container > div:nth-child(2) > div > img:nth-child(2)").attr("src")
       );
     movies[i].posterImageUrl = posterImageUrl;
+    savePosterImageToDisk(movies[i]);
     console.log(movies[i]);
     } catch (err) {
       console.error(err);
@@ -63,6 +66,12 @@ async function scrapePosterImageUrl(movies) {
   return movies;
 }
 
+async function savePosterImageToDisk(movie) {
+  regularRequest
+  .get(movie.posterImageUrl)
+  .pipe(fs.createWriteStream(`./poster/${movie.rank}.png`))
+
+}
 
 async function main() {
   let movies = await scrapeTitlesRanksAndRatings();
