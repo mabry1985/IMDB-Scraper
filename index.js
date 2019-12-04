@@ -16,12 +16,37 @@ async function scrapeTitlesRanksAndRatings(){
 
   const movies = $("tr")
     .map((i, el) => {
-      const title = $(el).find("td.titleColumn > a").text();
-      const imdbRating = $("td.ratingColumn.imdbRating").text().trim();
+      const title = $(el).find("td.titleColumn > a")
+        .text();
+      const imdbRating = $("td.ratingColumn.imdbRating")
+        .text()
+        .trim();
       const descriptionUrl = "https://www.imdb.com" + $(el).find("td.titleColumn > a").attr("href")
-    return {title, imdbRating, rank: i, descriptionUrl};
-  }).get();
+      return {title, imdbRating, rank: i, descriptionUrl};
+    }).get();
+  return movies;
+}
+
+async function scrapePosterUrl(movies) {
+  const moviesWithPosterUrls = await Promise.all(
+    movies.map(async movie => {
+      try {
+        const html = await request.get(movie.descriptionUrl);
+        const $ = await cheerio.load(html);
+        movie.posterUrl = "https://www.imdb.com" + $("div.poster > a").attr("href");
+        return movie;
+      } catch (err) {
+        console.error(err);
+      }
+    })
+  )
+  return moviesWithPosterUrls;
+}
+
+async function main() {
+  let movies = await scrapeTitlesRanksAndRatings();
+  movies = await scrapePosterUrl(movies);
   console.log(movies);
 }
 
-scrapeTitlesRanksAndRatings();
+main();
